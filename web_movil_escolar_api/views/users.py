@@ -8,6 +8,7 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.models import Group
+from django.shortcuts import get_object_or_404
 
 class AdminAll(generics.CreateAPIView):
     #Esta función es esencial para todo donde se requiera autorización de inicio de sesión (token)
@@ -19,6 +20,15 @@ class AdminAll(generics.CreateAPIView):
         return Response(lista, 200)
 
 class AdminView(generics.CreateAPIView):
+    #Obtener usuario por ID
+    # Verifica que el usuario esté autenticado
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, *args, **kwargs):
+        admin = get_object_or_404(Administradores, id = request.GET.get("id"))
+        admin = AdminSerializer(admin, many=False).data
+        # Si todo es correcto, regresamos la información
+        return Response(admin, 200)
+    
     #Registrar nuevo usuario
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -66,3 +76,24 @@ class AdminView(generics.CreateAPIView):
             return Response({"admin_created_id": admin.id }, 201)
 
         return Response(user.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Actualizar datos del administrador
+    @transaction.atomic
+    def put(self, request, *args, **kwargs):
+        permission_classes = (permissions.IsAuthenticated,)
+        # Primero obtenemos el administrador a actualizar
+        admin = get_object_or_404(Administradores, id=request.data["id"])
+        admin.clave_admin = request.data["clave_admin"]
+        admin.telefono = request.data["telefono"]
+        admin.rfc = request.data["rfc"]
+        admin.edad = request.data["edad"]
+        admin.ocupacion = request.data["ocupacion"]
+        admin.save()
+        # Actualizamos los datos del usuario asociado (tabla auth_user de Django)
+        user = admin.user
+        user.first_name = request.data["first_name"]
+        user.last_name = request.data["last_name"]
+        user.save()
+        
+        return Response({"message": "Administrador actualizado correctamente", "admin": AdminSerializer(admin).data}, 200)
+        # return Response(user,200)
