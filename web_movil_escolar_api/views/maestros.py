@@ -27,6 +27,16 @@ class MaestrosAll(generics.CreateAPIView):
         return Response(lista, 200)
     
 class MaestrosView(generics.CreateAPIView):
+    # Permisos por método (sobrescribe el comportamiento default)
+    # Verifica que el usuario esté autenticado para las peticiones GET, PUT y DELETE
+    def get_permissions(self):
+        if self.request.method in ['GET', 'PUT', 'DELETE']:
+            return [permissions.IsAuthenticated()]
+        return []  # POST no requiere autenticación
+    
+    #Obtener maestro por ID
+    # TODO: Agregar obtención de maestro por ID
+    
     #Registrar nuevo usuario maestro
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -67,6 +77,7 @@ class MaestrosView(generics.CreateAPIView):
     
     # Actualizar datos del maestro
     # TODO: Agregar actualización de maestros
+    
     # Eliminar maestro con delete (Borrar realmente)
     @transaction.atomic
     def delete(self, request, *args, **kwargs):

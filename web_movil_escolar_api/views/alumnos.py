@@ -19,6 +19,16 @@ class AlumnosAll(generics.CreateAPIView):
         return Response(lista, 200)
     
 class AlumnosView(generics.CreateAPIView):
+    # Permisos por método (sobrescribe el comportamiento default)
+    # Verifica que el usuario esté autenticado para las peticiones GET, PUT y DELETE
+    def get_permissions(self):
+        if self.request.method in ['GET', 'PUT', 'DELETE']:
+            return [permissions.IsAuthenticated()]
+        return []  # POST no requiere autenticación
+    
+    #Obtener alumno por ID
+    # TODO: Agregar obtención de alumno por ID
+    
     #Registrar nuevo usuario
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -66,3 +76,9 @@ class AlumnosView(generics.CreateAPIView):
             return Response({"Alumno creado con ID: ": alumno.id }, 201)
 
         return Response(user.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Actualizar datos del alumno
+    # TODO: Agregar actualización de alumnos
+    
+    # Eliminar alumno con delete (Borrar realmente)
+    # TODO: Agregar eliminación de alumnos
